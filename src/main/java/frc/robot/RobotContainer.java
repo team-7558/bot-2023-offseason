@@ -26,12 +26,14 @@ import frc.lib.team3061.swerve.SwerveModuleIOSim;
 import frc.lib.team3061.swerve.SwerveModuleIOTalonFX;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.RunIntake;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.MK4IRobotConfig;
 import frc.robot.configs.SierraRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +50,7 @@ public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private RobotConfig config;
   private Drivetrain m_drivetrain;
+  private Intake m_intake = new Intake();
 
   private PneumaticHub hub = new PneumaticHub();
   private Compressor compressor = new Compressor(1, PneumaticsModuleType.REVPH);
@@ -248,6 +251,9 @@ public class RobotContainer {
   /** Use this method to define your button->command mappings. */
   private void configureButtonBindings() {
     // field-relative toggle
+
+    oi.getOperatorA().whileTrue(new RunIntake(m_intake));
+
     oi.getFieldRelativeButton()
         .toggleOnTrue(
             Commands.either(
