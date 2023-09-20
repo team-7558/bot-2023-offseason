@@ -25,7 +25,7 @@ public class LimelightAlign extends CommandBase {
     addRequirements(drivetrain);
     this.m_drivetrain = drivetrain;
     this.m_limelight = limelight;
-    this.m_pid = new PIDController (0.07, 0, 0);
+    this.m_pid = new PIDController (0.06, 0, 0);
   }
 
   // Called when the command is initially scheduled.
