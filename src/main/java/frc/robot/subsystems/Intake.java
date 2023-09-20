@@ -26,7 +26,7 @@ public class Intake extends SubsystemBase {
 
   public void intake() {
     m_piston.set(true);
-    m_motor.set(0.2);
+    m_motor.set(0.4);
   }
 
   public void stopIntake() {

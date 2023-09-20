@@ -24,8 +24,10 @@ import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.swerve.SwerveModuleIO;
 import frc.lib.team3061.swerve.SwerveModuleIOSim;
 import frc.lib.team3061.swerve.SwerveModuleIOTalonFX;
+import frc.lib.team7558.limelightVision.Limelight;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.LimelightAlign;
 import frc.robot.commands.RunIntake;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
@@ -49,6 +51,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private RobotConfig config;
+  private Limelight m_limelight = new Limelight();
   private Drivetrain m_drivetrain;
   private Intake m_intake = new Intake();
 
@@ -253,6 +256,8 @@ public class RobotContainer {
     // field-relative toggle
 
     oi.getOperatorA().whileTrue(new RunIntake(m_intake));
+
+    oi.getDriverLeftTrigger().whileTrue(new LimelightAlign(m_limelight, m_drivetrain));
 
     oi.getFieldRelativeButton()
         .toggleOnTrue(
