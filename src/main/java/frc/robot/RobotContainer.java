@@ -28,6 +28,7 @@ import frc.lib.team7558.limelightVision.Limelight;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.LimelightAlign;
+import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.RunIntake;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
@@ -254,6 +255,8 @@ public class RobotContainer {
   /** Use this method to define your button->command mappings. */
   private void configureButtonBindings() {
     // field-relative toggle
+
+    oi.getOperatorLeftBumper().whileTrue(new LimelightToggle(m_limelight));
 
     oi.getOperatorA().whileTrue(new RunIntake(m_intake));
 

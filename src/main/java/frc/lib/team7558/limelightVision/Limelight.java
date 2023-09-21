@@ -130,6 +130,11 @@ public class Limelight {
     return botpose_fs.getDoubleArray(new double[7]);
   }
 
+  public void setLedPower(double power) {
+
+  }
+
+
   /**
    * @return transform of the robot in the coordinate system of the field in the form of a WPILib
    *     {@link Pose2d}
