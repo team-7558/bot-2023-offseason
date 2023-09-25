@@ -1,13 +1,15 @@
-// Copyright (c) FIRST and other WPILib contributors.
+package frc.robot.commands;
+
+ // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands;
 
 import com.pathplanner.lib.auto.PIDConstants;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -17,6 +19,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.lib.team7558.limelightVision.Limelight;
+import frc.lib.team7558.limelightVision.LimelightConstants;
 import frc.lib.team7558.limelightVision.LimelightConstants.LEDMode;
 import frc.lib.team7558.utils.Util;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -40,7 +43,7 @@ public class LimelightAlign extends CommandBase {
     addRequirements(drivetrain);
     this.m_drivetrain = drivetrain;
     this.m_limelight = limelight;
-    this.m_pid = new PIDController(0.03,0.0,0.0001);
+    this.m_pid = new PIDController(0.045,0.0,0.0001);
 
   }
 
@@ -53,13 +56,15 @@ public class LimelightAlign extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if(!Util.inRange(m_limelight.getX(),-3,3)) {
+    if(!Util.inRange(m_limelight.getX(),-2,2)) {
       double tx = m_limelight.getX();
       double txoutput = m_filter.calculate(tx);
       double output = m_pid.calculate(txoutput,0);
       SmartDashboard.putNumber("output", output);
       SmartDashboard.putNumber("txoutput",txoutput);
-      m_drivetrain.drive(0,0,output,false);
+      m_drivetrain.drive(output * 0.05,0,0,false);
+    } else {
+      m_drivetrain.drive(0,0,0,false);
     }
   }
 

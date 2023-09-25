@@ -27,7 +27,7 @@ import frc.lib.team3061.swerve.SwerveModuleIOTalonFX;
 import frc.lib.team7558.limelightVision.Limelight;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.Mode;
-import frc.robot.commands.LimelightAlign;
+import frc.robot.commands.LimelightFollow;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.RunIntake;
 import frc.robot.commands.TeleopSwerve;
@@ -55,6 +55,7 @@ public class RobotContainer {
   private Limelight m_limelight = new Limelight();
   private Drivetrain m_drivetrain;
   private Intake m_intake = new Intake();
+  private boolean limelight_state = false;
 
   private PneumaticHub hub = new PneumaticHub();
   private Compressor compressor = new Compressor(1, PneumaticsModuleType.REVPH);
@@ -256,11 +257,12 @@ public class RobotContainer {
   private void configureButtonBindings() {
     // field-relative toggle
 
+
     oi.getOperatorLeftBumper().whileTrue(new LimelightToggle(m_limelight));
 
     oi.getOperatorA().whileTrue(new RunIntake(m_intake));
 
-    oi.getDriverLeftTrigger().whileTrue(new LimelightAlign(m_limelight, m_drivetrain));
+    oi.getDriverLeftTrigger().whileTrue(new LimelightFollow(m_limelight, m_drivetrain));
 
     oi.getFieldRelativeButton()
         .toggleOnTrue(

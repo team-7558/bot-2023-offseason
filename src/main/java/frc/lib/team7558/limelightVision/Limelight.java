@@ -16,6 +16,7 @@ import frc.lib.team7558.limelightVision.LimelightConstants.camMode;
 
 /** Add your docs here. */
 public class Limelight {
+  public boolean led_state = true;
   private NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
   private NetworkTableEntry pl = table.getEntry("pipeline");
   private NetworkTableEntry tx = table.getEntry("tx");
@@ -79,6 +80,7 @@ public class Limelight {
     }
     return -1;
   }
+
 
   /**
    * @return Horizontal Offset From Crosshair To Target (-29.8 to 29.8 degrees)
@@ -178,11 +180,13 @@ public class Limelight {
   /** Turn on LEDs */
   public void LEDOn() {
     setLED(LEDMode.ON);
+    led_state = true;
   }
 
   /** Turn off LEDs */
   public void LEDOff() {
     setLED(LEDMode.OFF);
+    led_state = false;
   }
 
   /** Turn blink the LEDs */

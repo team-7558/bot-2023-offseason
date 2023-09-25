@@ -20,7 +20,11 @@ public class LimelightToggle extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    m_limelight.LEDOn();
+    if(!m_limelight.led_state) {
+      m_limelight.LEDOn();
+    } else {
+      m_limelight.LEDOff();
+    }
   }
 
   // Called every time the scheduler runs while the command is scheduled.

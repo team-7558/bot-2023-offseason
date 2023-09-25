@@ -1,6 +1,9 @@
 {
   "NetworkTables": {
     "retained": {
+      "SmartDashboard": {
+        "open": true
+      },
       "limelight": {
         "open": true
       }
