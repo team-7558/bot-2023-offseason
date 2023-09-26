@@ -26,12 +26,14 @@ import frc.lib.team3061.swerve.SwerveModuleIOSim;
 import frc.lib.team3061.swerve.SwerveModuleIOTalonFX;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.RunIntake;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
 import frc.robot.configs.MK4IRobotConfig;
 import frc.robot.configs.SierraRobotConfig;
 import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +48,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
+  private Intake m_intake;
   private RobotConfig config;
   private Drivetrain m_drivetrain;
 
@@ -70,7 +73,7 @@ public class RobotContainer {
      */
 
     hub.enableCompressorAnalog(100, 120);
-
+    this.m_intake = new Intake();
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
       switch (Constants.getRobot()) {
@@ -189,6 +192,7 @@ public class RobotContainer {
       SwerveModule brModule =
           new SwerveModule(new SwerveModuleIO() {}, 3, config.getRobotMaxVelocity());
       m_drivetrain = new Drivetrain(new GyroIO() {}, flModule, frModule, blModule, brModule);
+
       // new Pneumatics(new PneumaticsIORev() {});
       // new Vision(new VisionIO() {});
     }
@@ -262,7 +266,7 @@ public class RobotContainer {
     oi.getXStanceButton().onTrue(Commands.runOnce(m_drivetrain::enableXstance, m_drivetrain));
     oi.getXStanceButton().onFalse(Commands.runOnce(m_drivetrain::disableXstance, m_drivetrain));
 
-
+    oi.getOperatorA().whileTrue(new RunIntake(m_intake));
 
   }
 
