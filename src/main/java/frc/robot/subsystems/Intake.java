@@ -26,11 +26,7 @@ public class Intake extends SubsystemBase {
 
   public void intake() {
     m_piston.set(true);
-<<<<<<< HEAD
-    m_motor.set(0.2);
-=======
     m_motor.set(0.4);
->>>>>>> 9ac61ea2803dff31c79008dbdea4e7bd194a2992
   }
 
   public void stopIntake() {

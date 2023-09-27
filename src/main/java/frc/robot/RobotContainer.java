@@ -56,6 +56,7 @@ public class RobotContainer {
   private Limelight m_limelight = new Limelight();
   private Drivetrain m_drivetrain;
 
+
   private PneumaticHub hub = new PneumaticHub();
   private Compressor compressor = new Compressor(1, PneumaticsModuleType.REVPH);
 
@@ -68,6 +69,10 @@ public class RobotContainer {
   private final Map<String, Command> autoEventMap = new HashMap<>();
 
   private boolean driveCalibrated;
+
+  public RobotConfig getConfig() {
+    return this.config;
+  }
 
   /** Create the container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
