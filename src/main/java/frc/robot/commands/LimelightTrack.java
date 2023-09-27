@@ -32,18 +32,12 @@ public class LimelightTrack extends CommandBase {
 
   /** Creates a new LimelightTrack. */
   public LimelightTrack(Drivetrain drive, Limelight lime) {
-    RobotConfig config = RobotContainer.getInstance().getConfig();
+
     addRequirements(drive);
     this.m_limelight = lime;
-    double DEPTH_VAR_CHANGE_LATER = 0;
     this.m_drivetrain = drive;
     this.m_alignController = new PIDController(0.045, 0, 0.001);
-    this.m_movementController = new TrapezoidProfile(
-      new TrapezoidProfile.Constraints(
-        (config.getRobotMaxVelocity() * deg_rad) * 0.025,
-        (config.getAutoMaxAcceleration() * deg_rad) * 0.025),
-      new TrapezoidProfile.State(0, 0),
-      new TrapezoidProfile.State(m_depthFilter.calculate(DEPTH_VAR_CHANGE_LATER),0));
+
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -51,6 +45,14 @@ public class LimelightTrack extends CommandBase {
   @Override
   public void initialize() {
     m_limelight.LEDOn();
+    RobotConfig config = RobotContainer.getInstance().getConfig();
+    double DEPTH_VAR_CHANGE_LATER = 0;
+    this.m_movementController = new TrapezoidProfile(
+      new TrapezoidProfile.Constraints(
+        (config.getRobotMaxVelocity() * deg_rad) * 0.025,
+        (config.getAutoMaxAcceleration() * deg_rad) * 0.025),
+      new TrapezoidProfile.State(0, 0),
+      new TrapezoidProfile.State(m_depthFilter.calculate(DEPTH_VAR_CHANGE_LATER),0));
     m_timer.start();
   }
 
@@ -58,9 +60,18 @@ public class LimelightTrack extends CommandBase {
   @Override
   public void execute() {
     double depthVelocity = m_movementController.calculate(m_timer.get()).velocity;
-    double turnVelocity = m_alignController.calculate(m_txFilter.calculate(depthVelocity),m_limelight.getX());
+    double turnVelocity = 0;
+    double filteredTx = m_txFilter.calculate(m_limelight.getX());
+    if(Util.inRange(filteredTx,-2,2)) {
+      if(depthVelocity > 0.01) { 
+        depthVelocity = m_movementController.calculate(m_timer.get()).velocity;
+      }
+      turnVelocity = m_alignController.calculate(filteredTx,m_limelight.getX());
+      m_drivetrain.drive(0, depthVelocity, turnVelocity, false);
+    } else {
+      m_drivetrain.drive(0, 0, 0, false);
+    }
 
-    m_drivetrain.drive(0, depthVelocity, turnVelocity, false);
   }
 
   // Called once the command ends or is interrupted.
