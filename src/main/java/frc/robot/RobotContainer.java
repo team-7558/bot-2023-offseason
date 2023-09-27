@@ -29,6 +29,7 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.LimelightFollow;
 import frc.robot.commands.LimelightToggle;
+import frc.robot.commands.LimelightTrack;
 import frc.robot.commands.RunIntake;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
@@ -267,7 +268,9 @@ public class RobotContainer {
 
     oi.getOperatorA().whileTrue(new RunIntake(m_intake));
 
-    oi.getDriverLeftTrigger().whileTrue(new LimelightFollow(m_limelight, m_drivetrain));
+    // oi.getDriverLeftTrigger().whileTrue(new LimelightFollow(m_limelight, m_drivetrain));
+
+    oi.getDriverLeftTrigger().whileTrue(new LimelightTrack(m_drivetrain, m_limelight));
 
     oi.getFieldRelativeButton()
         .toggleOnTrue(

@@ -30,11 +30,10 @@ public class LimelightTrack extends CommandBase {
   private double poleHighHeight = Units.inchesToMeters(43.5);
   private double limelightAngle = 10;
   
-  private Timer m_timer;
   private LinearFilter m_tyFilter = LinearFilter.singlePoleIIR(0.1, 0.02);
   private LinearFilter m_txFilter = LinearFilter.singlePoleIIR(0.1, 0.02);
   private PIDController m_alignController;
-  private TrapezoidProfile m_movementController;
+  private PIDController m_movementController;
 
   /** Creates a new LimelightTrack. */
   public LimelightTrack(Drivetrain drive, Limelight lime) {
@@ -51,32 +50,26 @@ public class LimelightTrack extends CommandBase {
   @Override
   public void initialize() {
     m_limelight.LEDOn();
-    RobotConfig config = RobotContainer.getInstance().getConfig();
-    double angleToGoalDegrees = m_limelight.getY() + limelightAngle;
-    double angleToGoalRadians = angleToGoalDegrees * (3.14159 / 180.0);
-    double distance = (poleHighHeight - limelightHeight) / Math.tan(angleToGoalRadians);
 
-    this.m_movementController = new TrapezoidProfile(
-      new TrapezoidProfile.Constraints(
-        config.getRobotMaxVelocity() * 0.025 ,
-        config.getAutoMaxAcceleration() * 0.025),
-      new TrapezoidProfile.State(0, 0),
-      new TrapezoidProfile.State(distance,0));
-    m_timer.start();
+    System.out.println("init");
+    this.m_movementController = new PIDController(0.045, 0, 0);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double depthVelocity = m_movementController.calculate(m_timer.get()).velocity;
+    double angleToGoalDegrees = m_limelight.getY() + limelightAngle;
+    double angleToGoalRadians = angleToGoalDegrees * (3.14159 / 180.0);
+    double distance = (poleHighHeight - limelightHeight) / Math.tan(angleToGoalRadians);
+    double depthVelocity = 0;
     double turnVelocity = 0;
     double filteredTx = m_txFilter.calculate(m_limelight.getX());
-    if(Util.inRange(filteredTx,-2,2)) {
+    if(!Util.inRange(filteredTx,-2,2)) {
       if(depthVelocity > 0.01) { 
-        depthVelocity = m_movementController.calculate(m_timer.get()).velocity;
+        depthVelocity = m_movementController.calculate(distance,1);
       }
       turnVelocity = m_alignController.calculate(filteredTx,m_limelight.getX());
-      m_drivetrain.drive(0, depthVelocity, turnVelocity, false);
+      m_drivetrain.drive(turnVelocity, depthVelocity, 0, false);
     } else {
       m_drivetrain.drive(0, 0, 0, false);
     }
@@ -86,7 +79,6 @@ public class LimelightTrack extends CommandBase {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    m_timer.stop();
     m_drivetrain.drive(0, 0, 0, false);
   }
 
