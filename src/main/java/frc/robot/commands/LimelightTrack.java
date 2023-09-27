@@ -7,10 +7,12 @@ package frc.robot.commands;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.lib.team3061.RobotConfig;
 import frc.lib.team7558.limelightVision.Limelight;
+import frc.lib.team7558.limelightVision.LimelightConstants;
 import frc.lib.team7558.utils.Util;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.drivetrain.Drivetrain;
@@ -23,9 +25,13 @@ public class LimelightTrack extends CommandBase {
 
   private Drivetrain m_drivetrain;
   private Limelight m_limelight;
+
+  private double limelightHeight = Units.inchesToMeters(21.39);
+  private double poleHighHeight = Units.inchesToMeters(43.5);
+  private double limelightAngle = 10;
   
   private Timer m_timer;
-  private LinearFilter m_depthFilter = LinearFilter.singlePoleIIR(0.1, 0.02);
+  private LinearFilter m_tyFilter = LinearFilter.singlePoleIIR(0.1, 0.02);
   private LinearFilter m_txFilter = LinearFilter.singlePoleIIR(0.1, 0.02);
   private PIDController m_alignController;
   private TrapezoidProfile m_movementController;
@@ -46,13 +52,16 @@ public class LimelightTrack extends CommandBase {
   public void initialize() {
     m_limelight.LEDOn();
     RobotConfig config = RobotContainer.getInstance().getConfig();
-    double DEPTH_VAR_CHANGE_LATER = 0;
+    double angleToGoalDegrees = m_limelight.getY() + limelightAngle;
+    double angleToGoalRadians = angleToGoalDegrees * (3.14159 / 180.0);
+    double distance = (poleHighHeight - limelightHeight) / Math.tan(angleToGoalRadians);
+
     this.m_movementController = new TrapezoidProfile(
       new TrapezoidProfile.Constraints(
-        (config.getRobotMaxVelocity() * deg_rad) * 0.025,
-        (config.getAutoMaxAcceleration() * deg_rad) * 0.025),
+        config.getRobotMaxVelocity() * 0.025 ,
+        config.getAutoMaxAcceleration() * 0.025),
       new TrapezoidProfile.State(0, 0),
-      new TrapezoidProfile.State(m_depthFilter.calculate(DEPTH_VAR_CHANGE_LATER),0));
+      new TrapezoidProfile.State(distance,0));
     m_timer.start();
   }
 
