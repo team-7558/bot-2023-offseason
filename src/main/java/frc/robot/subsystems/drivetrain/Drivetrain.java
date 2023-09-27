@@ -511,8 +511,7 @@ public class Drivetrain extends SubsystemBase {
     states[0].angle = new Rotation2d(Math.PI / 2 - Math.atan(trackwidthMeters / wheelbaseMeters));
     states[1].angle = new Rotation2d(Math.PI / 2 + Math.atan(trackwidthMeters / wheelbaseMeters));
     states[2].angle = new Rotation2d(Math.PI / 2 + Math.atan(trackwidthMeters / wheelbaseMeters));
-    states[3].angle =
-        new Rotation2d(3.0 / 2.0 * Math.PI - Math.atan(trackwidthMeters / wheelbaseMeters));
+    states[3].angle = new Rotation2d(3.0 / 2.0 * Math.PI - Math.atan(trackwidthMeters / wheelbaseMeters));
     for (SwerveModule swerveModule : swerveModules) {
       swerveModule.setDesiredState(states[swerveModule.getModuleNumber()], true, true);
     }

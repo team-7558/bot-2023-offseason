@@ -24,8 +24,11 @@ import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.swerve.SwerveModuleIO;
 import frc.lib.team3061.swerve.SwerveModuleIOSim;
 import frc.lib.team3061.swerve.SwerveModuleIOTalonFX;
+import frc.lib.team7558.limelightVision.Limelight;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.LimelightFollow;
+import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.RunIntake;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
@@ -50,6 +53,7 @@ public class RobotContainer {
   private OperatorInterface oi = new OperatorInterface() {};
   private Intake m_intake;
   private RobotConfig config;
+  private Limelight m_limelight = new Limelight();
   private Drivetrain m_drivetrain;
 
   private PneumaticHub hub = new PneumaticHub();
@@ -252,6 +256,14 @@ public class RobotContainer {
   /** Use this method to define your button->command mappings. */
   private void configureButtonBindings() {
     // field-relative toggle
+
+
+    oi.getOperatorLeftBumper().whileTrue(new LimelightToggle(m_limelight));
+
+    oi.getOperatorA().whileTrue(new RunIntake(m_intake));
+
+    oi.getDriverLeftTrigger().whileTrue(new LimelightFollow(m_limelight, m_drivetrain));
+
     oi.getFieldRelativeButton()
         .toggleOnTrue(
             Commands.either(
