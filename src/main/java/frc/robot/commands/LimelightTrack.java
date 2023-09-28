@@ -4,18 +4,12 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.LinearFilter;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.lib.team3061.RobotConfig;
 import frc.lib.team7558.limelightVision.Limelight;
-import frc.lib.team7558.limelightVision.LimelightConstants;
 import frc.lib.team7558.utils.Util;
-import frc.robot.RobotContainer;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 
 
@@ -29,8 +23,6 @@ public class LimelightTrack extends CommandBase {
     FINISHED,
     CANCELLED
   }
-
-  private final double deg_rad = Math.PI / 180;
 
   private Drivetrain m_drivetrain;
   private Limelight m_limelight;
@@ -48,8 +40,6 @@ public class LimelightTrack extends CommandBase {
 
   private LinearFilter m_tyFilter = LinearFilter.singlePoleIIR(0.1, 0.02);
   private LinearFilter m_txFilter = LinearFilter.singlePoleIIR(0.1, 0.02);
-  private PIDController m_alignController;
-  private PIDController m_movementController;
 
 
   /** Creates a new LimelightTrack. */
@@ -58,7 +48,6 @@ public class LimelightTrack extends CommandBase {
     addRequirements(drive);
     this.m_limelight = lime;
     this.m_drivetrain = drive;
-    this.m_alignController = new PIDController(0.045, 0, 0.001);
     SmartDashboard.putNumber("xVelocity", kxVelocity);
     SmartDashboard.putNumber("yVelocity", kyVelocity);
     SmartDashboard.putNumber("targetDistance", kTargetDistance);
@@ -74,7 +63,6 @@ public class LimelightTrack extends CommandBase {
     m_limelight.LEDOn();
 
     System.out.println("init");
-    this.m_movementController = new PIDController(0.045, 0, 0);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
