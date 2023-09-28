@@ -11,7 +11,7 @@ botwidth:0.7112
 calibration_type:0
 classifier_conf:0.100000
 contour_grouping:0
-contour_sort_final:6
+contour_sort_final:2
 convexity_max:100
 convexity_min:10
 corner_approx:5.000000
@@ -48,7 +48,7 @@ fiducial_type:aprilClassic16h5
 fiducial_vis_mode:3dtargposebotspace
 flicker_correction:0
 force_convex:1
-hue_max:116
+hue_max:97
 hue_min:81
 image_flip:0
 image_source:0
@@ -89,6 +89,6 @@ tsf:0
 tss:0
 tsu:0
 val_max:255
-val_min:96
+val_min:151
 x_outlier_miqr:1.5
 y_outlier_miqr:1.5
