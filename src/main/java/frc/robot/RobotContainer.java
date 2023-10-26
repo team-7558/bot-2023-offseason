@@ -7,6 +7,11 @@ package frc.robot;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.FollowPathWithEvents;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
@@ -25,11 +30,14 @@ import frc.lib.team3061.swerve.SwerveModuleIO;
 import frc.lib.team3061.swerve.SwerveModuleIOSim;
 import frc.lib.team3061.swerve.SwerveModuleIOTalonFX;
 import frc.lib.team7558.limelightVision.Limelight;
+import frc.ppnew.lib.auto.AutoBuilder;
+import frc.ppnew.lib.path.PathConstraints;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.Mode;
 import frc.robot.commands.LimelightFollow;
 import frc.robot.commands.LimelightToggle;
 import frc.robot.commands.LimelightTrack;
+import frc.robot.commands.LogLimelightValues;
 import frc.robot.commands.RunIntake;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.configs.DefaultRobotConfig;
@@ -39,6 +47,7 @@ import frc.robot.operator_interface.OISelector;
 import frc.robot.operator_interface.OperatorInterface;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.drivetrain.Drivetrain;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,21 +78,44 @@ public class RobotContainer {
   private static RobotContainer robotContainer = new RobotContainer();
   private final Map<String, Command> autoEventMap = new HashMap<>();
 
+
+  private Pose2d nodes[] = new Pose2d[9];
+
+
+
   private boolean driveCalibrated;
 
   public RobotConfig getConfig() {
     return this.config;
   }
 
+
+  private void configPathPlanner() {
+
+
+    nodes[0] = new Pose2d(new Translation2d(2, 0.52),new Rotation2d(Units.degreesToRadians(180)));
+    nodes[1] = new Pose2d(new Translation2d(2, 1.09),new Rotation2d(Units.degreesToRadians(180)));
+    nodes[2] = new Pose2d(new Translation2d(2, 1.64),new Rotation2d(Units.degreesToRadians(180)));
+    nodes[3] = new Pose2d(new Translation2d(2, 2.19),new Rotation2d(Units.degreesToRadians(180)));
+    nodes[4] = new Pose2d(new Translation2d(2, 2.76),new Rotation2d(Units.degreesToRadians(180)));
+    nodes[5] = new Pose2d(new Translation2d(2, 3.33),new Rotation2d(Units.degreesToRadians(180)));
+    nodes[6] = new Pose2d(new Translation2d(2, 3.89),new Rotation2d(Units.degreesToRadians(180)));
+    nodes[7] = new Pose2d(new Translation2d(2, 4.43),new Rotation2d(Units.degreesToRadians(180)));
+    nodes[8] = new Pose2d(new Translation2d(2, 5.0),new Rotation2d(Units.degreesToRadians(180)));
+
+  }
+
   /** Create the container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    configPathPlanner();
     /*
      * IMPORTANT: The RobotConfig subclass object *must* be created before any other objects
      * that use it directly or indirectly. If this isn't done, a null pointer exception will result.
      */
 
-    hub.enableCompressorAnalog(100, 120);
-    this.m_intake = new Intake();
+
+    // hub.enableCompressorAnalog(100, 120);
+    // this.m_intake = new Intake();
     // create real, simulated, or replay subsystems based on the mode and robot specified
     if (Constants.getMode() != Mode.REPLAY) {
       switch (Constants.getRobot()) {
@@ -263,14 +295,17 @@ public class RobotContainer {
   private void configureButtonBindings() {
     // field-relative toggle
 
+    m_drivetrain.resetOdometry(new Pose2d(5.56,0.73,Rotation2d.fromDegrees(90)));
 
+    oi.getDriverCircle().whileTrue(new LogLimelightValues(m_limelight));
+    
     oi.getOperatorLeftBumper().whileTrue(new LimelightToggle(m_limelight));
 
-    oi.getOperatorA().whileTrue(new RunIntake(m_intake));
+    // oi.getOperatorA().whileTrue(new RunIntake(m_intake));
 
     // oi.getDriverLeftTrigger().whileTrue(new LimelightFollow(m_limelight, m_drivetrain));
 
-    oi.getDriverLeftTrigger().whileTrue(new LimelightTrack(m_drivetrain, m_limelight));
+    // oi.getDriverLeftTrigger().whileTrue(new LimelightTrack(m_drivetrain, m_limelight));
 
     oi.getFieldRelativeButton()
         .toggleOnTrue(
@@ -286,7 +321,74 @@ public class RobotContainer {
     oi.getXStanceButton().onTrue(Commands.runOnce(m_drivetrain::enableXstance, m_drivetrain));
     oi.getXStanceButton().onFalse(Commands.runOnce(m_drivetrain::disableXstance, m_drivetrain));
 
-    oi.getOperatorA().whileTrue(new RunIntake(m_intake));
+    PathConstraints constraints = new PathConstraints(1.0,
+    0.5,
+    Units.degreesToRadians(RobotConfig.getInstance().getRobotMaxAngularVelocity() * 0.25),
+    Units.degreesToRadians(RobotConfig.getInstance().getRobotMaxAngularVelocity() * 0.1)
+  );
+
+    oi.getOperatorA().onTrue(AutoBuilder.pathfindToPose(
+      nodes[0],
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  ));
+
+  oi.getOperatorX().onTrue(AutoBuilder.pathfindToPose(
+      nodes[1],
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  ));
+
+  oi.getOperatorY().onTrue(AutoBuilder.pathfindToPose(
+      nodes[2],
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  ));
+
+  oi.getOperatorB().onTrue(AutoBuilder.pathfindToPose(
+      nodes[3],
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  ));
+
+  oi.getOperatorRightBumper().onTrue(AutoBuilder.pathfindToPose(
+      nodes[4],
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  ));
+
+  oi.getOperatorRightTrigger().onTrue(AutoBuilder.pathfindToPose(
+      nodes[5],
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  ));
+
+  oi.getOperatorLeftBumper().onTrue(AutoBuilder.pathfindToPose(
+      nodes[6],
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  ));
+
+  oi.getOperatorLeftTrigger().onTrue(AutoBuilder.pathfindToPose(
+      nodes[7],
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  ));
+
+  oi.getOperatorDPad(90).onTrue(AutoBuilder.pathfindToPose(
+      nodes[8],
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  ));
 
   }
 

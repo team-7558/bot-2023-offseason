@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -30,6 +31,11 @@ import frc.lib.team3061.swerve.SwerveModule;
 import frc.lib.team3061.util.RobotOdometry;
 import frc.lib.team6328.util.TunableNumber;
 import frc.lib.team7558.limelightVision.*;
+import frc.ppnew.lib.auto.AutoBuilder;
+import frc.ppnew.lib.util.HolonomicPathFollowerConfig;
+import frc.ppnew.lib.util.PIDConstants;
+import frc.ppnew.lib.util.ReplanningConfig;
+
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -68,6 +74,8 @@ public class Drivetrain extends SubsystemBase {
 
   private final SwerveModule[] swerveModules = new SwerveModule[4]; // FL, FR, BL, BR
 
+  private final Field2d m_field = new Field2d();
+
   // some of this code is from the SDS example code
 
   private Translation2d centerGravity;
@@ -101,6 +109,8 @@ public class Drivetrain extends SubsystemBase {
   private final SwerveDrivePoseEstimator poseEstimator;
   private boolean brakeMode;
 
+  private final ShuffleboardTab m_tab = Shuffleboard.getTab("Drivetrain");
+
   private DriveMode driveMode = DriveMode.NORMAL;
   private double characterizationVoltage = 0.0;
 
@@ -118,6 +128,8 @@ public class Drivetrain extends SubsystemBase {
     this.swerveModules[1] = frModule;
     this.swerveModules[2] = blModule;
     this.swerveModules[3] = brModule;
+
+
 
     this.autoThetaController.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -137,6 +149,25 @@ public class Drivetrain extends SubsystemBase {
     tabMain.addNumber("Gyroscope Angle", () -> getRotation().getDegrees());
     tabMain.addBoolean("X-Stance On?", this::isXstance);
     tabMain.addBoolean("Field-Relative Enabled?", () -> this.isFieldRelative);
+
+    m_tab.add(m_field);
+
+    AutoBuilder.configureHolonomic(
+      this::getPose, 
+      this::resetOdometry,
+      this::getChassisSpeeds,
+      this::driveChassisSpeeds,
+      new HolonomicPathFollowerConfig(
+        new PIDConstants(5.0,0.0,0.0),
+        new PIDConstants(5.0, 0.0, 0.0),
+        4.5,
+        0.4,
+        new ReplanningConfig()
+      ),
+      this
+    );
+
+    
 
     if (DEBUGGING) {
       ShuffleboardTab tab = Shuffleboard.getTab(SUBSYSTEM_NAME);
@@ -194,6 +225,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   /**
+   * 
    * @return The tilt of the robot
    */
   public Rotation2d getTilt() {
@@ -264,6 +296,21 @@ public class Drivetrain extends SubsystemBase {
         new Pose2d(state.poseMeters.getTranslation(), state.holonomicRotation));
   }
 
+  public void resetOdometry(Pose2d state) {
+    setGyroOffset(state.getRotation().getDegrees());
+
+    for (int i = 0; i < 4; i++) {
+      swerveModulePositions[i] = swerveModules[i].getPosition();
+    }
+
+    estimatedPoseWithoutGyro =
+        new Pose2d(state.getX(),state.getY(), state.getRotation());
+    poseEstimator.resetPosition(
+        this.getRotation(),
+        swerveModulePositions,
+        new Pose2d(state.getX(), state.getY(),state.getRotation()));
+  }
+
   private boolean hasLimelight() {
     return this.limelight.getAprilTagId() != -1;
   }
@@ -332,6 +379,37 @@ public class Drivetrain extends SubsystemBase {
         break;
     }
   }
+
+
+  public void driveChassisSpeeds(ChassisSpeeds chassisSpeeds) {
+    switch (driveMode) {
+      case NORMAL:
+
+
+    SwerveModuleState[] swerveModuleStates =
+        kinematics.toSwerveModuleStates(chassisSpeeds, centerGravity);
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+        swerveModuleStates, RobotConfig.getInstance().getRobotMaxVelocity());
+
+    for (SwerveModule swerveModule : swerveModules) {
+      swerveModule.setDesiredState(
+          swerveModuleStates[swerveModule.getModuleNumber()], true, false);
+    }
+    break;
+
+  case CHARACTERIZATION:
+    // In characterization mode, drive at the specified voltage (and turn to zero degrees)
+    for (SwerveModule swerveModule : swerveModules) {
+      swerveModule.setVoltageForCharacterization(characterizationVoltage);
+    }
+    break;
+
+  case X:
+    this.setXStance();
+
+    break;
+}
+}
 
   /**
    * Stops the motion of the robot. Since the motors are in break mode, the robot will stop soon
@@ -423,6 +501,8 @@ public class Drivetrain extends SubsystemBase {
     Logger.getInstance().recordOutput("3DField", new Pose3d(poseEstimatorPose));
     Logger.getInstance().recordOutput("SwerveModuleStates", states);
     Logger.getInstance().recordOutput(SUBSYSTEM_NAME + "/gyroOffset", this.gyroOffset);
+
+    m_field.setRobotPose(poseEstimatorPose);
   }
 
   /**
@@ -527,6 +607,8 @@ public class Drivetrain extends SubsystemBase {
   public void setCenterGrav(double x, double y) {
     this.centerGravity = new Translation2d(x, y);
   }
+
+
 
   /** Resets the robot's center of gravity about which it will rotate to the center of the robot. */
   public void resetCenterGrav() {

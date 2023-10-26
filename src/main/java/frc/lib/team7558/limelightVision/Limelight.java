@@ -22,6 +22,7 @@ public class Limelight {
   private NetworkTableEntry tx = table.getEntry("tx");
   private NetworkTableEntry ty = table.getEntry("ty");
   private NetworkTableEntry ta = table.getEntry("ta");
+  private NetworkTableEntry tclass = table.getEntry("tclass");
   private NetworkTableEntry tv = table.getEntry("tv");
   private NetworkTableEntry tl = table.getEntry("tl");
   private NetworkTableEntry cl = table.getEntry("cl");
@@ -68,6 +69,14 @@ public class Limelight {
    */
   public double getPipeline() {
     return getpipe.getDouble(0);
+  }
+
+
+    /**
+   * @return The currently set limelight pipeline ID
+   */
+  public double getMLClass() {
+    return tclass.getDouble(0);
   }
 
   /**
